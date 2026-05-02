@@ -1,0 +1,9 @@
+services:
+  xray:
+    image: teddysun/xray:latest
+    container_name: xray-proxy
+    restart: unless-stopped
+    network_mode: host
+    volumes:
+      - ./xray_config.json:/etc/xray/config.json
+    command: ["xray", "run", "-c", "/etc/xray/config.json"]

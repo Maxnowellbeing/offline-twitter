@@ -1,0 +1,23 @@
+# 敏感数据
+.env
+
+# 数据库和媒体（用户数据）
+tweets.db
+media/
+
+# Python 缓存
+__pycache__/
+*.pyc
+
+# 测试脚本
+scripts/test/
+
+# 部署脚本（含 NAS 密码和 Twitter cookies）
+scripts/deploy/
+
+# 代理配置（含服务器信息）
+xray_config.json
+
+# 系统文件
+.DS_Store
+Thumbs.db
