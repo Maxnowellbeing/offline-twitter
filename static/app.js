@@ -141,6 +141,7 @@ function renderCover(list) {
     const n = list.length;
     const gc = n === 1 ? 'g1' : n === 2 ? 'g2' : n >= 4 ? 'g4' : 'g3';
     const items = list.slice(0, 4).map(m => {
+        if (!m.local_path) return '';
         const ep = m.local_path.split('/').map(s => encodeURIComponent(s)).join('/');
         const src = `${API}/api/media/${ep}`;
         if (m.media_type === 'video') {
@@ -213,6 +214,7 @@ async function loadMediaGallery() {
         if (mediaFilter !== 'all') all = all.filter(m => m.media_type === mediaFilter);
         el.innerHTML = all.length
             ? all.map(m => {
+                if (!m.local_path) return '';
                 const ep = m.local_path.split('/').map(s => encodeURIComponent(s)).join('/');
                 const src = `${API}/api/media/${ep}`;
                 return m.media_type === 'video'
@@ -400,6 +402,8 @@ function renderLbItem() {
 function lbNav(dir) {
     const ni = lbIndex + dir;
     if (ni < 0 || ni >= lbList.length) return;
+    const v = document.querySelector('#lightbox-content video');
+    if (v) v.pause();
     lbIndex = ni;
     renderLbItem();
 }

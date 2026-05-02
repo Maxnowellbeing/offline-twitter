@@ -908,7 +908,10 @@ def api_user_tweets(username):
 @app.route("/api/media/<path:filepath>")
 def api_media(filepath):
     """Serve local media files."""
-    full_path = Path(CONFIG["media_base"]) / filepath
+    media_base = Path(CONFIG["media_base"]).resolve()
+    full_path = (media_base / filepath).resolve()
+    if not str(full_path).startswith(str(media_base)):
+        return jsonify({"error": "Access denied"}), 403
     if not full_path.exists():
         return jsonify({"error": "File not found"}), 404
     return send_from_directory(str(full_path.parent), full_path.name)
