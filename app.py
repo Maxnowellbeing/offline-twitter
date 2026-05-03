@@ -917,6 +917,68 @@ def api_media(filepath):
     return send_from_directory(str(full_path.parent), full_path.name)
 
 
+@app.route("/api/thumb/<path:filepath>")
+def api_thumb(filepath):
+    """Serve video thumbnail, generating it if missing."""
+    media_base = Path(CONFIG["media_base"]).resolve()
+    thumb_base = Path(CONFIG["media_base"]).parent / "thumbs"
+    thumb_path = (thumb_base / (filepath + ".jpg")).resolve()
+    video_path = (media_base / filepath).resolve()
+
+    if not str(video_path).startswith(str(media_base)):
+        return jsonify({"error": "Access denied"}), 403
+
+    if not thumb_path.exists():
+        if not video_path.exists():
+            return jsonify({"error": "File not found"}), 404
+        thumb_path.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            import subprocess
+            subprocess.run(
+                ["ffmpeg", "-y", "-i", str(video_path), "-ss", "00:00:01", "-vframes", "1",
+                 "-vf", "scale=480:-1", "-q:v", "4", str(thumb_path)],
+                capture_output=True, timeout=15
+            )
+        except Exception as e:
+            print(f"[thumb] Error generating thumbnail for {filepath}: {e}", file=sys.stderr)
+            return jsonify({"error": "Thumbnail generation failed"}), 500
+
+    if not thumb_path.exists():
+        return jsonify({"error": "Thumbnail not available"}), 404
+    return send_from_directory(str(thumb_path.parent), thumb_path.name)
+
+
+def generate_all_thumbnails():
+    """Generate thumbnails for all videos missing them."""
+    import subprocess
+    thumb_base = Path(CONFIG["media_base"]).parent / "thumbs"
+    media_base = Path(CONFIG["media_base"]).resolve()
+
+    with db_conn() as conn:
+        rows = conn.execute("SELECT local_path FROM media WHERE media_type='video' AND local_path IS NOT NULL AND local_path != ''").fetchall()
+
+    count = 0
+    for row in rows:
+        rel = row["local_path"]
+        video_path = media_base / rel
+        thumb_path = thumb_base / (rel + ".jpg")
+        if thumb_path.exists() or not video_path.exists():
+            continue
+        thumb_path.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            subprocess.run(
+                ["ffmpeg", "-y", "-i", str(video_path), "-ss", "00:00:01", "-vframes", "1",
+                 "-vf", "scale=480:-1", "-q:v", "4", str(thumb_path)],
+                capture_output=True, timeout=15
+            )
+            if thumb_path.exists():
+                count += 1
+        except Exception as e:
+            print(f"[thumb] Error: {e}", file=sys.stderr)
+
+    print(f"[thumb] Generated {count} thumbnails")
+
+
 # --- Follow list management ---
 @app.route("/api/follows", methods=["GET"])
 def api_get_follows():
@@ -1227,6 +1289,10 @@ def main():
     args = parser.parse_args()
 
     init_db()
+
+    # Generate video thumbnails
+    print("[init] Generating video thumbnails...")
+    generate_all_thumbnails()
 
     # Import existing media from F:\V into database
     print("[init] Scanning existing media...")

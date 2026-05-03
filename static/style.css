@@ -363,12 +363,7 @@ body::before{
   letter-spacing:.04em;
 }
 .m-video{
-  min-height:120px;position:relative;
-  background:var(--bg3);
-}
-.m-video video{
-  width:100%;display:block;object-fit:cover;
-  background:var(--bg3);
+  position:relative;
 }
 .play-icon{
   position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);

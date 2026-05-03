@@ -214,33 +214,11 @@ function renderMediaBatch(all, start) {
         const ep = m.local_path.split('/').map(s => encodeURIComponent(s)).join('/');
         const src = `${API}/api/media/${ep}`;
         if (m.media_type === 'video') {
-            return `<div class="m-item m-video" data-src="${src}" data-type="video" onclick="openLightbox('${src}','video')"><video src="${src}" muted playsinline preload="metadata"></video><span class="play-icon">&#9654;</span><span class="vbadge">${fmtDur(m.duration_ms) || '▶'}</span></div>`;
+            const thumb = `${API}/api/thumb/${ep}`;
+            return `<div class="m-item m-video" data-src="${src}" data-type="video" onclick="openLightbox('${src}','video')"><img src="${thumb}" loading="lazy" onerror="this.style.display='none'"><span class="play-icon">&#9654;</span><span class="vbadge">${fmtDur(m.duration_ms) || '▶'}</span></div>`;
         }
         return `<div class="m-item" data-src="${src}" data-type="image" onclick="openLightbox('${src}','image')"><img src="${src}" loading="lazy"></div>`;
     }).join('');
-}
-
-function generateVideoThumbs() {
-    document.querySelectorAll('.m-video video').forEach(v => {
-        if (v.dataset.thumbDone) return;
-        v.dataset.thumbDone = '1';
-        v.addEventListener('loadeddata', () => {
-            v.currentTime = 0.1;
-        });
-        v.addEventListener('seeked', () => {
-            try {
-                const c = document.createElement('canvas');
-                c.width = v.videoWidth || 320;
-                c.height = v.videoHeight || 180;
-                c.getContext('2d').drawImage(v, 0, 0, c.width, c.height);
-                v.style.backgroundImage = `url(${c.toDataURL('image/jpeg', 0.6)})`;
-                v.style.backgroundSize = 'cover';
-                v.style.backgroundPosition = 'center';
-                v.removeAttribute('preload');
-                v.src = '';
-            } catch(e) {}
-        });
-    });
 }
 
 async function loadMediaGallery() {
@@ -261,7 +239,6 @@ async function loadMediaGallery() {
             el.innerHTML = renderMediaBatch(all, 0) +
                 (all.length > MEDIA_PAGE_SIZE ? '<div class="load-more" onclick="loadMoreMedia()">加载更多</div>' : '');
             mediaGalleryPage = MEDIA_PAGE_SIZE;
-            generateVideoThumbs();
         }
     } catch(e) { el.innerHTML = `<div class="empty"><h3>加载失败</h3><p style="color:var(--red);font-size:12px">${e.message}</p></div>`; }
 
@@ -276,7 +253,6 @@ function loadMoreMedia() {
     mediaGalleryPage += MEDIA_PAGE_SIZE;
     el.insertAdjacentHTML('beforeend', html +
         (mediaGalleryPage < mediaGalleryData.length ? '<div class="load-more" onclick="loadMoreMedia()">加载更多</div>' : ''));
-    generateVideoThumbs();
 }
 
 function filterMedia(type, btn) {
