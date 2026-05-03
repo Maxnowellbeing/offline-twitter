@@ -203,28 +203,55 @@ async function loadUserProfile(username) {
 }
 
 // ===== Media Gallery =====
+let mediaGalleryData = [];
+let mediaGalleryPage = 0;
+const MEDIA_PAGE_SIZE = 30;
+
+function renderMediaBatch(all, start) {
+    const batch = all.slice(start, start + MEDIA_PAGE_SIZE);
+    return batch.map(m => {
+        if (!m.local_path) return '';
+        const ep = m.local_path.split('/').map(s => encodeURIComponent(s)).join('/');
+        const src = `${API}/api/media/${ep}`;
+        if (m.media_type === 'video') {
+            return `<div class="m-item" data-src="${src}" data-type="video" onclick="openLightbox('${src}','video')"><div class="video-thumb"><svg viewBox="0 0 24 24" width="36" height="36" fill="white"><polygon points="8,5 20,12 8,19"/></svg></div><span class="vbadge">${fmtDur(m.duration_ms) || '▶'}</span></div>`;
+        }
+        return `<div class="m-item" data-src="${src}" data-type="image" onclick="openLightbox('${src}','image')"><img src="${src}" loading="lazy"></div>`;
+    }).join('');
+}
+
 async function loadMediaGallery() {
     const el = document.getElementById('media-gallery');
     el.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+    mediaGalleryPage = 0;
     try {
-        const r = await fetch(`${API}/api/timeline?per_page=100&media_only=1`);
+        const r = await fetch(`${API}/api/timeline?per_page=200&media_only=1`);
         const d = await r.json();
         let all = [];
-        d.tweets.forEach(t => t.media?.forEach(m => all.push({...m})));
+        d.tweets.forEach(t => t.media?.forEach(m => { if (m.local_path) all.push({...m}); }));
         if (mediaFilter !== 'all') all = all.filter(m => m.media_type === mediaFilter);
-        el.innerHTML = all.length
-            ? all.map(m => {
-                if (!m.local_path) return '';
-                const ep = m.local_path.split('/').map(s => encodeURIComponent(s)).join('/');
-                const src = `${API}/api/media/${ep}`;
-                return m.media_type === 'video'
-                    ? `<div class="m-item" data-src="${src}" data-type="video" onclick="openLightbox('${src}','video')"><video src="${src}" preload="metadata" muted></video><span class="vbadge">${fmtDur(m.duration_ms) || '▶'}</span></div>`
-                    : `<div class="m-item" data-src="${src}" data-type="image" onclick="openLightbox('${src}','image')"><img src="${src}" loading="lazy"></div>`;
-            }).join('')
-            : '<div class="empty"><h3>暂无媒体</h3></div>';
+        mediaGalleryData = all;
+
+        if (!all.length) {
+            el.innerHTML = '<div class="empty"><h3>暂无媒体</h3></div>';
+        } else {
+            el.innerHTML = renderMediaBatch(all, 0) +
+                (all.length > MEDIA_PAGE_SIZE ? '<div class="load-more" onclick="loadMoreMedia()">加载更多</div>' : '');
+            mediaGalleryPage = MEDIA_PAGE_SIZE;
+        }
     } catch { el.innerHTML = '<div class="empty"><h3>加载失败</h3></div>'; }
 
     document.getElementById('media-sidebar').innerHTML = renderStatsCard(await loadStats());
+}
+
+function loadMoreMedia() {
+    const el = document.getElementById('media-gallery');
+    const btn = el.querySelector('.load-more');
+    if (btn) btn.remove();
+    const html = renderMediaBatch(mediaGalleryData, mediaGalleryPage);
+    mediaGalleryPage += MEDIA_PAGE_SIZE;
+    el.insertAdjacentHTML('beforeend', html +
+        (mediaGalleryPage < mediaGalleryData.length ? '<div class="load-more" onclick="loadMoreMedia()">加载更多</div>' : ''));
 }
 
 function filterMedia(type, btn) {

@@ -362,6 +362,19 @@ body::before{
   color:#fff;padding:3px 8px;border-radius:5px;font-size:10px;font-weight:600;
   letter-spacing:.04em;
 }
+.video-thumb{
+  width:100%;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,var(--bg3),var(--bg4));
+}
+.video-thumb svg{opacity:.7;transition:opacity .2s}
+.m-item:hover .video-thumb svg{opacity:1}
+.load-more{
+  text-align:center;padding:14px;margin:10px 0;
+  color:var(--accent);cursor:pointer;font-weight:600;font-size:14px;
+  border:1px solid var(--border2);border-radius:var(--r-sm);
+  transition:all .2s var(--ease);
+}
+.load-more:hover{background:rgba(129,140,248,.1);border-color:var(--accent)}
 
 /* ═══ Follow List Page ═══ */
 .follow-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
