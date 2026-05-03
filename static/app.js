@@ -215,10 +215,19 @@ function renderMediaBatch(all, start) {
         const src = `${API}/api/media/${ep}`;
         if (m.media_type === 'video') {
             const thumb = `${API}/api/thumb/${ep}`;
-            return `<div class="m-item m-video" data-src="${src}" data-type="video" onclick="openLightbox('${src}','video')"><img src="${thumb}" loading="lazy" onerror="this.style.display='none'"><span class="play-icon">&#9654;</span><span class="vbadge">${fmtDur(m.duration_ms) || '▶'}</span></div>`;
+            return `<div class="m-item m-video" data-src="${src}" data-type="video" onclick="openLightbox('${src}','video')" onmouseenter="preloadVideo('${src}')" ontouchstart="preloadVideo('${src}')"><img src="${thumb}" loading="lazy" onerror="this.style.display='none'"><span class="play-icon">&#9654;</span><span class="vbadge">${fmtDur(m.duration_ms) || '▶'}</span></div>`;
         }
         return `<div class="m-item" data-src="${src}" data-type="image" onclick="openLightbox('${src}','image')"><img src="${src}" loading="lazy"></div>`;
     }).join('');
+}
+
+const _videoCache = {};
+function preloadVideo(src) {
+    if (_videoCache[src]) return;
+    const v = document.createElement('video');
+    v.preload = 'metadata';
+    v.src = src;
+    _videoCache[src] = v;
 }
 
 async function loadMediaGallery() {
@@ -376,27 +385,27 @@ async function loadFavorites() {
 let lbList = [];   // [{src, type}, ...]
 let lbIndex = 0;
 
+let _lbListCache = null;
 function openLightbox(src, type) {
-    // Try to find the media list context from the clicked element
     lbList = [];
     lbIndex = 0;
 
-    // Collect all visible media items on the current page
     const page = document.querySelector('.page.active');
     if (page) {
-        // Timeline / User posts / Search: collect from .cover-item and .m-item
         const items = page.querySelectorAll('.cover-item[data-src], .m-item[data-src]');
-        items.forEach(el => {
-            lbList.push({ src: el.dataset.src, type: el.dataset.type || 'image' });
-        });
+        const len = items.length;
+        for (let i = 0; i < len; i++) {
+            const el = items[i];
+            if (el.offsetParent !== null) {
+                lbList.push({ src: el.dataset.src, type: el.dataset.type || 'image' });
+            }
+        }
     }
 
-    // If no context found, just use the single item
     if (!lbList.length) {
         lbList = [{ src, type }];
     }
 
-    // Find the index of the clicked item
     lbIndex = lbList.findIndex(m => m.src === src);
     if (lbIndex < 0) lbIndex = 0;
 
@@ -407,9 +416,24 @@ function openLightbox(src, type) {
 function renderLbItem() {
     const m = lbList[lbIndex];
     if (!m) return;
-    document.getElementById('lightbox-content').innerHTML = m.type === 'video'
-        ? `<video src="${m.src}" controls autoplay style="max-width:90vw;max-height:88vh"></video>`
-        : `<img src="${m.src}">`;
+    if (m.type === 'video') {
+        const cached = _videoCache[m.src];
+        document.getElementById('lightbox-content').innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+        const video = cached || document.createElement('video');
+        video.src = m.src;
+        video.controls = true;
+        video.autoplay = true;
+        video.style.cssText = 'max-width:90vw;max-height:88vh';
+        video.oncanplay = () => {
+            document.getElementById('lightbox-content').innerHTML = '';
+            document.getElementById('lightbox-content').appendChild(video);
+        };
+        video.onerror = () => {
+            document.getElementById('lightbox-content').innerHTML = '<div class="empty"><h3>视频加载失败</h3></div>';
+        };
+    } else {
+        document.getElementById('lightbox-content').innerHTML = `<img src="${m.src}">`;
+    }
 
     // Show/hide arrows
     const prev = document.querySelector('.lb-prev');
