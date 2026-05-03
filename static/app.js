@@ -214,7 +214,7 @@ function renderMediaBatch(all, start) {
         const ep = m.local_path.split('/').map(s => encodeURIComponent(s)).join('/');
         const src = `${API}/api/media/${ep}`;
         if (m.media_type === 'video') {
-            return `<div class="m-item" data-src="${src}" data-type="video" onclick="openLightbox('${src}','video')"><div class="video-thumb"><svg viewBox="0 0 24 24" width="36" height="36" fill="white"><polygon points="8,5 20,12 8,19"/></svg></div><span class="vbadge">${fmtDur(m.duration_ms) || '▶'}</span></div>`;
+            return `<div class="m-item m-video" data-src="${src}" data-type="video" onclick="openLightbox('${src}','video')"><span class="play-icon">&#9654;</span><span class="vbadge">${fmtDur(m.duration_ms) || '▶'}</span></div>`;
         }
         return `<div class="m-item" data-src="${src}" data-type="image" onclick="openLightbox('${src}','image')"><img src="${src}" loading="lazy"></div>`;
     }).join('');

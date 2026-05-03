@@ -362,12 +362,16 @@ body::before{
   color:#fff;padding:3px 8px;border-radius:5px;font-size:10px;font-weight:600;
   letter-spacing:.04em;
 }
-.video-thumb{
-  width:100%;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;
+.m-video{
+  min-height:160px;display:flex;align-items:center;justify-content:center;
   background:linear-gradient(135deg,var(--bg3),var(--bg4));
 }
-.video-thumb svg{opacity:.7;transition:opacity .2s}
-.m-item:hover .video-thumb svg{opacity:1}
+.play-icon{
+  font-size:40px;color:rgba(255,255,255,.8);
+  text-shadow:0 2px 8px rgba(0,0,0,.5);
+  transition:transform .2s var(--ease);
+}
+.m-item:hover .play-icon{transform:scale(1.2)}
 .load-more{
   text-align:center;padding:14px;margin:10px 0;
   color:var(--accent);cursor:pointer;font-weight:600;font-size:14px;
