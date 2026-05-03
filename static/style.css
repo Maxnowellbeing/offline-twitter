@@ -103,7 +103,9 @@ body::before{
   backdrop-filter:blur(12px);
   border:1px solid var(--border2);border-radius:var(--r);
   overflow:hidden;margin-bottom:24px;cursor:pointer;
-  transition:all .3s var(--ease);position:relative;
+  transition:transform .3s var(--ease),box-shadow .3s var(--ease),border-color .3s var(--ease);
+  position:relative;contain:layout style paint;will-change:transform;
+  transform:translateZ(0);
 }
 .post-card::before{
   content:'';position:absolute;inset:0;border-radius:var(--r);opacity:0;
@@ -337,12 +339,14 @@ body::before{
   box-shadow:0 1px 4px rgba(0,0,0,.2);
   border:1px solid var(--border2);
 }
-.masonry{columns:3;column-gap:14px}
+.masonry{columns:3;column-gap:14px;contain:layout style}
 .masonry .m-item{
   break-inside:avoid;margin-bottom:14px;border-radius:var(--r-sm);
   overflow:hidden;cursor:pointer;position:relative;
-  background:var(--bg3);transition:all .3s var(--ease);
+  background:var(--bg3);transition:transform .3s var(--ease),box-shadow .3s var(--ease),border-color .3s var(--ease);
   border:1px solid var(--border);
+  contain:layout style paint;will-change:transform;
+  transform:translateZ(0);
 }
 .masonry .m-item::after{
   content:'';position:absolute;inset:0;
@@ -350,12 +354,12 @@ body::before{
   opacity:0;transition:opacity .3s var(--ease);pointer-events:none;
 }
 .masonry .m-item:hover{
-  transform:translateY(-2px);box-shadow:var(--shadow2),var(--glow);
+  transform:translateY(-2px) translateZ(0);box-shadow:var(--shadow2),var(--glow);
   border-color:rgba(129,140,248,.18);
 }
 .masonry .m-item:hover::after{opacity:1}
-.masonry .m-item img,.masonry .m-item video{width:100%;display:block;transition:transform .4s var(--ease)}
-.masonry .m-item:hover img,.masonry .m-item:hover video{transform:scale(1.04)}
+.masonry .m-item img,.masonry .m-item video{width:100%;display:block;transition:transform .4s var(--ease);will-change:transform;transform:translateZ(0)}
+.masonry .m-item:hover img,.masonry .m-item:hover video{transform:scale(1.04) translateZ(0)}
 .m-item .vbadge{
   position:absolute;top:10px;right:10px;
   background:rgba(0,0,0,.6);backdrop-filter:blur(6px);
@@ -421,7 +425,8 @@ body::before{
   position:fixed;inset:0;
   background:rgba(14,17,23,.72);backdrop-filter:blur(8px);
   z-index:1000;display:flex;align-items:center;justify-content:center;
-  animation:fadeIn .2s var(--ease);
+  animation:fadeIn .15s var(--ease);
+  will-change:opacity;transform:translateZ(0);
 }
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 .modal{

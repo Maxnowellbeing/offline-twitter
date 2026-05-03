@@ -907,14 +907,16 @@ def api_user_tweets(username):
 # --- Media serving ---
 @app.route("/api/media/<path:filepath>")
 def api_media(filepath):
-    """Serve local media files."""
+    """Serve local media files with cache headers."""
     media_base = Path(CONFIG["media_base"]).resolve()
     full_path = (media_base / filepath).resolve()
     if not str(full_path).startswith(str(media_base)):
         return jsonify({"error": "Access denied"}), 403
     if not full_path.exists():
         return jsonify({"error": "File not found"}), 404
-    return send_from_directory(str(full_path.parent), full_path.name)
+    resp = send_from_directory(str(full_path.parent), full_path.name)
+    resp.headers["Cache-Control"] = "public, max-age=604800, immutable"
+    return resp
 
 
 @app.route("/api/thumb/<path:filepath>")
@@ -945,7 +947,9 @@ def api_thumb(filepath):
 
     if not thumb_path.exists():
         return jsonify({"error": "Thumbnail not available"}), 404
-    return send_from_directory(str(thumb_path.parent), thumb_path.name)
+    resp = send_from_directory(str(thumb_path.parent), thumb_path.name)
+    resp.headers["Cache-Control"] = "public, max-age=604800, immutable"
+    return resp
 
 
 def generate_all_thumbnails():

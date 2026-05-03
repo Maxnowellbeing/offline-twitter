@@ -246,13 +246,16 @@ async function loadMediaGallery() {
             el.innerHTML = `<div class="empty"><h3>暂无媒体</h3><p style="color:var(--muted);font-size:12px">筛选: ${mediaFilter}, 总数: ${d.tweets?.length || 0}</p></div>`;
         } else {
             el.innerHTML = renderMediaBatch(all, 0) +
-                (all.length > MEDIA_PAGE_SIZE ? '<div class="load-more" onclick="loadMoreMedia()">加载更多</div>' : '');
+                (all.length > MEDIA_PAGE_SIZE ? '<div class="load-more">加载更多</div>' : '');
             mediaGalleryPage = MEDIA_PAGE_SIZE;
+            observeLoadMore();
         }
     } catch(e) { el.innerHTML = `<div class="empty"><h3>加载失败</h3><p style="color:var(--red);font-size:12px">${e.message}</p></div>`; }
 
     document.getElementById('media-sidebar').innerHTML = renderStatsCard(await loadStats());
 }
+
+let _loadMoreObserver = null;
 
 function loadMoreMedia() {
     const el = document.getElementById('media-gallery');
@@ -261,7 +264,18 @@ function loadMoreMedia() {
     const html = renderMediaBatch(mediaGalleryData, mediaGalleryPage);
     mediaGalleryPage += MEDIA_PAGE_SIZE;
     el.insertAdjacentHTML('beforeend', html +
-        (mediaGalleryPage < mediaGalleryData.length ? '<div class="load-more" onclick="loadMoreMedia()">加载更多</div>' : ''));
+        (mediaGalleryPage < mediaGalleryData.length ? '<div class="load-more">加载更多</div>' : ''));
+    observeLoadMore();
+}
+
+function observeLoadMore() {
+    if (_loadMoreObserver) _loadMoreObserver.disconnect();
+    const btn = document.querySelector('#media-gallery .load-more');
+    if (!btn) return;
+    _loadMoreObserver = new IntersectionObserver(entries => {
+        if (entries[0].isIntersecting) loadMoreMedia();
+    }, { rootMargin: '200px' });
+    _loadMoreObserver.observe(btn);
 }
 
 function filterMedia(type, btn) {
