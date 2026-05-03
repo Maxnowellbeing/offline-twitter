@@ -145,8 +145,9 @@ function renderCover(list) {
         const ep = m.local_path.split('/').map(s => encodeURIComponent(s)).join('/');
         const src = `${API}/api/media/${ep}`;
         if (m.media_type === 'video') {
-            return `<div class="cover-item" data-src="${src}" data-type="video" onclick="event.stopPropagation();openLightbox('${src}','video')">
-                <video src="${src}" preload="metadata" muted></video><span class="vbadge">${fmtDur(m.duration_ms) || ''}</span></div>`;
+            const thumb = `${API}/api/thumb/${ep}`;
+            return `<div class="cover-item" data-src="${src}" data-type="video" onclick="event.stopPropagation();openLightbox('${src}','video')" onmouseenter="preloadVideo('${src}')" ontouchstart="preloadVideo('${src}')">
+                <img src="${thumb}" loading="lazy" onerror="this.style.display='none'"><span class="vbadge">${fmtDur(m.duration_ms) || ''}</span></div>`;
         }
         return `<div class="cover-item" data-src="${src}" data-type="image" onclick="event.stopPropagation();openLightbox('${src}','image')">
             <img src="${src}" loading="lazy"></div>`;
