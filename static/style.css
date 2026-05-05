@@ -47,7 +47,8 @@ body::before{
 }
 .topbar-inner{
   max-width:1200px;margin:0 auto;padding:0 32px;
-  height:60px;display:flex;align-items:center;gap:24px;
+  min-height:60px;display:flex;align-items:center;gap:24px;
+  flex-wrap:wrap;
 }
 .brand{
   display:flex;align-items:center;gap:11px;
@@ -522,16 +523,22 @@ body::before{
 
 /* ═══ Responsive ═══ */
 @media(max-width:920px){
-  .nav{display:none}
+  .topbar-inner{gap:12px}
+  .nav{flex-wrap:wrap;gap:0}
+  .nav-a{padding:6px 10px;font-size:13px}
   .grid{grid-template-columns:1fr}
   .masonry{columns:2}
   .follow-grid{grid-template-columns:1fr}
   .container{padding:20px}
 }
 @media(max-width:600px){
-  .container{padding:14px}
-  .topbar-inner{padding:0 16px;gap:12px}
+  .topbar-inner{padding:0 12px;gap:8px}
+  .nav{width:100%;order:3;justify-content:center;padding-top:4px}
+  .nav-a{padding:5px 8px;font-size:12px}
+  .actions{gap:4px}
+  .btn-add{padding:6px 12px;font-size:12px}
   .brand span:last-child{display:none}
+  .container{padding:14px}
   .masonry{columns:2;column-gap:8px}
   .post-body{padding:16px 18px 18px}
   .post-text{font-size:14px}
